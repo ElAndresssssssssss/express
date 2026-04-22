@@ -1,0 +1,30 @@
+{
+  "name": "express",
+  "version": "1.0.0",
+  "description": "express js course",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "andres felipe",
+  "license": "MIT",
+  "dependencies": {
+    "@prisma/client": "^5.22.0",
+    "bcryptjs": "^3.0.3",
+    "body-parser": "^2.2.2",
+    "dotenv": "^17.4.1",
+    "express": "^5.2.1",
+    "jsonwebtoken": "^9.0.3",
+    "pg": "^8.20.0",
+    "prisma": "^5.22.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ElAndresssssssssss/express.git"
+  },
+  "bugs": {
+    "url": "https://github.com/ElAndresssssssssss/express/issues"
+  },
+  "homepage": "https://github.com/ElAndresssssssssss/express#readme"
+}
