@@ -2,7 +2,7 @@
   "name": "express",
   "version": "1.0.0",
   "description": "express js course",
-  "main": "index.js",
+  "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js",
     "build": "prisma generate",
