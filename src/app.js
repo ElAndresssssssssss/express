@@ -6,6 +6,7 @@
 const logger = require('./middleware/logger')
 const error = require('./middleware/errorHandler')
 const express = require('express');
+const path = require('path');
 const routes  = require('./routes')
 require('dotenv').config();
 const app = express();
@@ -15,9 +16,7 @@ app.use(express.json()); //It parses incoming requests with JSON payloads and ma
 app.use(logger);
 
 app.use('/api', routes); //it says that this one is going to be the main point
-app.get('/', (req, res) => {
-    res.send('Hello world')
-});
+app.use(express.static(path.join(__dirname, '..', 'frontend')));
 app.use(error);
 
 
