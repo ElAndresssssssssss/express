@@ -6,9 +6,11 @@
 const logger = require('./middleware/logger')
 const error = require('./middleware/errorHandler')
 const express = require('express');
+const path = require('path');
 const routes  = require('./routes')
 require('dotenv').config();
 const app = express();
+const frontendPath = path.join(__dirname, '..', 'frontend');
 
 
 app.use((req, res, next) => {
@@ -22,9 +24,9 @@ app.use(express.json()); //It parses incoming requests with JSON payloads and ma
 app.use(logger);
 
 app.use('/api', routes);
-app.use(express.static('frontend'));
+app.use(express.static(frontendPath));
 app.get('/', (req, res) => {
-    res.sendFile('index.html', { root: 'frontend' });
+    res.sendFile(path.join(frontendPath, 'index.html'));
 });
 app.use(error);
 
