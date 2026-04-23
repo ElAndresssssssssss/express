@@ -21,9 +21,10 @@ app.use((req, res, next) => {
 app.use(express.json()); //It parses incoming requests with JSON payloads and makes the data available in:
 app.use(logger);
 
-app.use('/api', routes); //it says that this one is going to be the main point 
+app.use('/api', routes);
+app.use(express.static('frontend'));
 app.get('/', (req, res) => {
-    res.send('Hello world')
+    res.sendFile('index.html', { root: 'frontend' });
 });
 app.use(error);
 
