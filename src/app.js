@@ -6,11 +6,13 @@
 const logger = require('./middleware/logger')
 const error = require('./middleware/errorHandler')
 const express = require('express');
+const cors = require('cors');
 const routes  = require('./routes')
 require('dotenv').config();
 const app = express();
 
 
+app.use(cors());
 app.use(express.json()); //It parses incoming requests with JSON payloads and makes the data available in:
 app.use(logger);
 
