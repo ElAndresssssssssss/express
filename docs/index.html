@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Appointment App</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: sans-serif;
+      background: #f0f2f5;
+      display: flex;
+      justify-content: center;
+      padding: 40px 16px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 480px;
+    }
+
+    h1 {
+      font-size: 1.5rem;
+      margin-bottom: 24px;
+      color: #111;
+      text-align: center;
+    }
+
+    .card {
+      background: white;
+      border-radius: 12px;
+      padding: 24px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      margin-bottom: 20px;
+    }
+
+    .card h2 {
+      font-size: 1rem;
+      margin-bottom: 16px;
+      color: #333;
+    }
+
+    input {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      margin-bottom: 12px;
+      outline: none;
+      transition: border 0.2s;
+    }
+
+    input:focus { border-color: #4f46e5; }
+
+    button {
+      width: 100%;
+      padding: 10px;
+      background: #4f46e5;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    button:hover { background: #4338ca; }
+
+    .tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+
+    .tab {
+      flex: 1;
+      padding: 10px;
+      background: white;
+      color: #4f46e5;
+      border: 2px solid #4f46e5;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .tab.active {
+      background: #4f46e5;
+      color: white;
+    }
+
+    .message {
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      margin-top: 12px;
+      display: none;
+    }
+
+    .message.success { background: #d1fae5; color: #065f46; display: block; }
+    .message.error   { background: #fee2e2; color: #991b1b; display: block; }
+
+    #appointments-section { display: none; }
+
+    .appointment-item {
+      padding: 12px;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      margin-bottom: 10px;
+      font-size: 0.9rem;
+      color: #374151;
+    }
+
+    .appointment-item span {
+      display: block;
+      color: #6b7280;
+      font-size: 0.8rem;
+      margin-top: 4px;
+    }
+
+    .logged-in-bar {
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      background: #ede9fe;
+      padding: 10px 14px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      font-size: 0.9rem;
+      color: #4f46e5;
+    }
+
+    .logged-in-bar button {
+      width: auto;
+      padding: 6px 12px;
+      font-size: 0.8rem;
+      background: #4f46e5;
+    }
+
+    #appointments-list p {
+      color: #6b7280;
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Appointment Booking</h1>
+
+    <!-- Logged in bar -->
+    <div class="logged-in-bar" id="logged-in-bar">
+      <span id="logged-in-email"></span>
+      <button onclick="logout()">Log out</button>
+    </div>
+
+    <!-- Auth tabs -->
+    <div class="tabs" id="auth-tabs">
+      <button class="tab active" onclick="switchTab('login')">Login</button>
+      <button class="tab" onclick="switchTab('register')">Register</button>
+    </div>
+
+    <!-- Login -->
+    <div class="card" id="login-card">
+      <h2>Login</h2>
+      <input type="email" id="login-email" placeholder="Email" />
+      <input type="password" id="login-password" placeholder="Password" />
+      <button onclick="login()">Login</button>
+      <div class="message" id="login-msg"></div>
+    </div>
+
+    <!-- Register -->
+    <div class="card" id="register-card" style="display:none">
+      <h2>Create account</h2>
+      <input type="text" id="reg-name" placeholder="Full name" />
+      <input type="email" id="reg-email" placeholder="Email" />
+      <input type="password" id="reg-password" placeholder="Password" />
+      <button onclick="register()">Register</button>
+      <div class="message" id="register-msg"></div>
+    </div>
+
+    <!-- Appointments -->
+    <div class="card" id="appointments-section">
+      <h2>My Appointments</h2>
+      <div id="appointments-list"><p>Loading...</p></div>
+    </div>
+  </div>
+
+  <script>
+    const API = 'NGROK_URL_HERE/api';
+
+    let token = localStorage.getItem('token');
+    let userId = localStorage.getItem('userId');
+
+    if (token) showLoggedIn();
+
+    function switchTab(tab) {
+      document.getElementById('login-card').style.display    = tab === 'login'    ? 'block' : 'none';
+      document.getElementById('register-card').style.display = tab === 'register' ? 'block' : 'none';
+      document.querySelectorAll('.tab').forEach((t, i) => {
+        t.classList.toggle('active', (tab === 'login' && i === 0) || (tab === 'register' && i === 1));
+      });
+    }
+
+    async function login() {
+      const email    = document.getElementById('login-email').value;
+      const password = document.getElementById('login-password').value;
+      const msg      = document.getElementById('login-msg');
+
+      try {
+        const res  = await fetch(`${API}/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password }),
+        });
+        const data = await res.json();
+
+        if (!res.ok) throw new Error(data.error || 'Login failed');
+
+        // Decode JWT to get userId (middle part is base64 payload)
+        const payload = JSON.parse(atob(data.token.split('.')[1]));
+        token  = data.token;
+        userId = payload.id || payload.userId;
+
+        localStorage.setItem('token',  token);
+        localStorage.setItem('userId', userId);
+
+        showMessage(msg, 'Logged in!', 'success');
+        setTimeout(showLoggedIn, 600);
+      } catch (err) {
+        showMessage(msg, err.message, 'error');
+      }
+    }
+
+    async function register() {
+      const name     = document.getElementById('reg-name').value;
+      const email    = document.getElementById('reg-email').value;
+      const password = document.getElementById('reg-password').value;
+      const msg      = document.getElementById('register-msg');
+
+      try {
+        const res  = await fetch(`${API}/auth/register`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, email, password }),
+        });
+        const data = await res.json();
+
+        if (!res.ok) throw new Error(data.error || 'Registration failed');
+
+        showMessage(msg, 'Account created! You can now log in.', 'success');
+        setTimeout(() => switchTab('login'), 1200);
+      } catch (err) {
+        showMessage(msg, err.message, 'error');
+      }
+    }
+
+    async function loadAppointments() {
+      const list = document.getElementById('appointments-list');
+      try {
+        const res  = await fetch(`${API}/users/${userId}/appointments`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await res.json();
+
+        if (!data.length) {
+          list.innerHTML = '<p>No appointments yet.</p>';
+          return;
+        }
+
+        list.innerHTML = data.map(a => `
+          <div class="appointment-item">
+            Appointment #${a.id}
+            <span>Date: ${new Date(a.date).toLocaleString()}</span>
+            <span>Time block: ${a.timeBlockId}</span>
+          </div>
+        `).join('');
+      } catch {
+        list.innerHTML = '<p>Could not load appointments.</p>';
+      }
+    }
+
+    function showLoggedIn() {
+      document.getElementById('auth-tabs').style.display       = 'none';
+      document.getElementById('login-card').style.display      = 'none';
+      document.getElementById('register-card').style.display   = 'none';
+      document.getElementById('appointments-section').style.display = 'block';
+
+      const bar = document.getElementById('logged-in-bar');
+      bar.style.display = 'flex';
+      document.getElementById('logged-in-email').textContent = localStorage.getItem('userEmail') || 'Logged in';
+
+      loadAppointments();
+    }
+
+    function logout() {
+      localStorage.clear();
+      token = null; userId = null;
+      location.reload();
+    }
+
+    function showMessage(el, text, type) {
+      el.textContent  = text;
+      el.className    = `message ${type}`;
+    }
+  </script>
+</body>
+</html>
